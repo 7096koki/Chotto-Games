@@ -2,7 +2,7 @@ import subprocess
 import os
 
 def menu():
-    game_list = ["guess_number", "mainsweeper"]
+    game_list = ["guess_number", "minesweeper"]
     print("Welcome to ChottoGames!")
 
     while True:
@@ -35,7 +35,8 @@ def menu():
         except KeyboardInterrupt:
             # Ctrl+Cで強制終了された場合
             exec_game_proc.terminate()
-            print() # ^Cが上のゲームリストに影響しないようにするため
+        
+        print()
 
 
 menu()

@@ -1,4 +1,5 @@
 import random
+import os
 
 def main():
     count = 0
@@ -6,9 +7,9 @@ def main():
 
     while True:
         try:
-            answer = int(input("answer: "))
+            answer = int(input("answer:"))
         except ValueError:
-            print("this is not number")
+            print("This is not number")
             continue
 
         count += 1
@@ -25,6 +26,8 @@ def main():
 
     
 if __name__ == "__main__":
+    os.system("clear")
+
     level = 1
     while True:
         max_n = 10 ** level
