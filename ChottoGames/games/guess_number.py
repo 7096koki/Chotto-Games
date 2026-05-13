@@ -1,5 +1,6 @@
 import random
 import os
+import sys
 
 def main():
     count = 0
@@ -7,7 +8,8 @@ def main():
 
     while True:
         try:
-            answer = int(input("answer:"))
+            print("answer: ", end="", flush=True) # inputに書いても何故か表示されないので応急処置
+            answer = int(input())
         except ValueError:
             print("This is not number")
             continue
@@ -15,22 +17,18 @@ def main():
         count += 1
 
         if answer < n:
-            print("+")
+            print("It's bigger number(+)")
         elif answer > n:
-            print("-")
+            print("It's smaller number(-)")
         elif answer == n:
             print(f"Correct answer after {count} time!")
-            break
+            input("Press any key to return to menu...")
         if abs(n - answer) <= 10 and not level == 1:
             print("±10")
 
     
 if __name__ == "__main__":
-    os.system("clear")
-
-    level = 1
-    while True:
-        max_n = 10 ** level
-        print(f"Lv.{level}: 1 ~ {max_n}")
-        main()
-        level += 1
+    level = int(sys.argv[1])
+    max_n = 10 ** level
+    print(f"Lv.{level}: 1 ~ {max_n}")
+    main()
