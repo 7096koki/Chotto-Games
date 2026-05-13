@@ -7,7 +7,8 @@ def main():
 
     while True:
         try:
-            answer = int(input("answer:"))
+            print("answer: ", end="", flush=True)
+            answer = int(input(""))
         except ValueError:
             print("This is not number")
             continue
