@@ -1,7 +1,10 @@
+import time
 import subprocess
 import os
+import sys
 import readchar
-import time
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+from lib import screen
 
 def menu():
     cursor_pos = 0
@@ -9,7 +12,7 @@ def menu():
     game_list = ["guess_number", "minesweeper"]
     game_level_list = {
         "guess_number": 16,
-        "minesweeper": 5
+        "minesweeper": 6
     }
     current_level_list = {
         "guess_number": 1,
@@ -23,7 +26,7 @@ def menu():
             select_game = game_list[cursor_pos]
             level = current_level_list[select_game]
     
-            os.system("clear")
+            screen.clear()
             print("====MENU============================")
             for i, show_game in enumerate(game_list):
                 if cursor_pos == i:
@@ -49,7 +52,7 @@ def menu():
                 case _:
                     pass
 
-        os.system("clear")
+        screen.clear()
 
         print(f"===={select_game}============================")
 

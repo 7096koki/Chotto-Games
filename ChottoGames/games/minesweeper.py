@@ -5,6 +5,7 @@ import time
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from lib import score
+from lib import screen
 
 # カーソルの初期位置
 y = 0
@@ -95,7 +96,7 @@ def open_cell(oy, ox):
                 open_cell(oy + dy, ox + dx)
 
 def show_stage():
-    os.system("clear")
+    screen.clear()
     for sy in range(size):
         for sx in range(size):
             cell = display_stage[sy][sx]
@@ -132,6 +133,8 @@ def main():
     global x, y, start_time, hit_bomb, remaining # 使うグローバル変数をまとめて宣言
     hit_bomb = 0 # 初期化
     remaining = size * size # 最初は全セルが閉じている
+    input_history= []
+    is_cheat = None
 
     while True:
         show_stage()
@@ -139,8 +142,18 @@ def main():
         print(f"Level {level} | ↑↓←→: Move | Enter: Open | F: Flag")
         if level == 4: print(f"Bombs Hit: {hit_bomb}") # レベル4なら被弾数表示
         print("-" * 40)
+        if is_cheat == True and data_stage[y][x] == "*":
+            print("#")
 
         key = readchar.readkey()
+
+        if isinstance(key, str):
+            input_history.append(key.lower())
+            if len(input_history) > 5:
+                input_history.pop(0)
+
+        if "".join(input_history) == "xyzzy":
+            is_cheat = True
 
         match key:
             case readchar.key.DOWN:
@@ -194,16 +207,17 @@ if __name__ == "__main__":
     if start_time is None:
         start_time = time.time()
 
-    stop_time = time.time() - start_time
-    print(f"TIME: {stop_time:.3f}s")
+    stop_time = int((time.time() - start_time) * 1000)
+    print(f"TIME: {stop_time / 1000:.3f}s")
 
     if is_clear:
         print("Game Clear!")
         if level != 4:
-            score.save(level, float(f"{stop_time:.3f}"))
+            score.save(level, stop_time)
         else:
             # level 4の保存（hit_bombを渡す）
-            score.save(level, float(f"{stop_time:.3f}"), user_data1=hit_bomb)
+            score.save(level, int(stop_time), hit_bomb)
     
-    print("Press any key to return to menu...")
+    print("Press Enter key to return to menu...")
     readchar.readkey() # input()よりreadkeyの方が「any key」感が出ます
+    
