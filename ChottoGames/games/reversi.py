@@ -1,6 +1,7 @@
 import sys
 import os
 import readchar
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from lib import screen
 
@@ -15,6 +16,7 @@ stage[4][4] = WHITE
 stage[3][4] = BLACK
 stage[4][3] = BLACK
 
+
 def show_stage(x, y):
     screen.clear()
     for r, row in enumerate(stage):
@@ -24,6 +26,7 @@ def show_stage(x, y):
             else:
                 print(cell, end=" ")
         print()
+
 
 def main():
     global x, y
@@ -46,7 +49,7 @@ def main():
             case readchar.key.ENTER:
                 if stage[y][x] == ".":
                     stage[y][x] = BLACK
-                
+
 
 if __name__ == "__main__":
     main()
