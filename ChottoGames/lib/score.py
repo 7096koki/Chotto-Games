@@ -36,13 +36,11 @@ def save(level, new_score, *user_data):
         json.dump(all_data, f, indent=4)
 
 
-def load(level):
+def load(game_name, level):
     """
-    呼び出し元のゲーム名と指定されたレベルに応じたランキング（最大10件）を返す。
+    引数のゲームとレベルに応じたランキング（最大10件）を返す。
     データが存在しない場合は空のリスト [] を返す。
     """
-    game_name = os.path.splitext(os.path.basename(inspect.stack()[1].filename))[0]
-
     if not os.path.exists(SAVE_FILE_PATH):
         return []
 
@@ -52,4 +50,4 @@ def load(level):
     level_str = str(level)
     
     # 指定されたゲームやレベルのデータがない場合は空のリストを安全に返す
-    return all_data.get(game_name, {}).get(level_str, [])
+    return [item for sublist in (all_data.get(game_name, {}).get(level_str, [])) for item in sublist]

@@ -29,8 +29,10 @@ def main():
         elif answer == n:
             print(f"Correct answer after {count} time!")
             input("Press any key to return to menu...")
-        if abs(n - answer) <= 10 and not level == 1:
-            print("±10")
+        elif level > 1 and abs(n - answer) < (max_n / 10):
+            # 10^(level-1) の数値を計算して表示
+            hint_range = 10 ** (level - 1)
+            print(f"±{hint_range}")
 
 
 if __name__ == "__main__":

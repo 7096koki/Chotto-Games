@@ -1,5 +1,7 @@
+import random
 import sys
 import os
+import random
 import readchar
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
@@ -27,6 +29,29 @@ def show_stage(x, y):
                 print(cell, end=" ")
         print()
 
+def cpu_put():
+    while True:
+            cx = random.randint(0, SIZE - 1)
+            cy = random.randint(0, SIZE - 1)
+            
+            if stage[cy][cx] == ".":
+                stage[cy][cx] = WHITE
+                break
+
+def reverse(px, py, turn):
+    is_end = False
+    ix = px
+    iy = py
+    r = 0
+    reversed_stage = []
+    while (not is_end) or ix < SIZE - 1:
+        ix += 1
+        r += 1
+        if stage[iy][ix] == turn:
+            for _ in range(r):
+                reversed_stage.append(turn)
+            stage[iy][px:ix] = reversed_stage
+            break
 
 def main():
     global x, y
@@ -49,6 +74,8 @@ def main():
             case readchar.key.ENTER:
                 if stage[y][x] == ".":
                     stage[y][x] = BLACK
+                    reverse(x, y, BLACK)
+
 
 
 if __name__ == "__main__":
