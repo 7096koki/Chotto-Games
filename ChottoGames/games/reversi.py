@@ -7,6 +7,12 @@ import readchar
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from lib import screen
 
+INFO = {
+    "title": "Reversi",
+    "rule": "hikkurikaesite asobu teiban board game!",
+    "controls": "↑↓←→: cursor idou | Enter: tama wo oku",
+}
+
 SIZE = 8
 BLACK = "●"
 WHITE = "◯"
@@ -43,14 +49,11 @@ def reverse(px, py, turn):
     ix = px
     iy = py
     r = 0
-    reversed_stage = []
     while (not is_end) or ix < SIZE - 1:
         ix += 1
         r += 1
         if stage[iy][ix] == turn:
-            for _ in range(r):
-                reversed_stage.append(turn)
-            stage[iy][px:ix] = reversed_stage
+            stage[iy][px:ix] =list(turn * r)
             break
 
 def main():

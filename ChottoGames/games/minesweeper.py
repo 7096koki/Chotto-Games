@@ -1,9 +1,3 @@
-INFO = {
-    "title": "マインスイーパ",
-    "rule": "80sからの定番PCゲーム。爆弾を避けて全部のマスを開けよう！",
-    "controls": "↑↓←→: カーソル移動 | Enter: 開ける | F: 旗を立てる",
-}
-
 import os
 import random
 import sys
@@ -13,6 +7,12 @@ import readchar
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from lib import score, screen
+
+INFO = {
+    "title": "Minesweeper",
+    "rule": "80s kara no teiban PC game. bakudan wo sakete subete no masu wo akeyou!",
+    "controls": "↑↓←→: cursor idou | Enter: akeru | F: hata wo tateru",
+}
 
 # 状態を表す定数（マジックワードの共通化）
 BOMB_MARK = "*" 
@@ -151,7 +151,7 @@ def main():
     while True:
         show_stage()
         print("-" * 40)
-        print(f"LEVEL {LEVEL} | ↑↓←→: Move | Enter: Open | F: Flag")
+        print(INFO["controls"])
         if LEVEL == 4:
             print(f"Bombs Hit: {hit_bomb}")
         print("-" * 40)

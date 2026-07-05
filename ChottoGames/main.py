@@ -16,7 +16,7 @@ def menu():
 
     game_list = ["guess_number", "minesweeper", "reversi"]
     game_level_list = {
-        "guess_number": 16,
+        "guess_number": 255,
         "minesweeper": 6,
         "reversi": 1
     }
@@ -74,11 +74,11 @@ def menu():
                         # ゲーム側に INFO が定義されていたら表示する
                         if hasattr(game_module, "INFO"):
                             info = game_module.INFO
-                            print(f"[ルール]   : {info.get('rule', 'None')}")
-                            print(f"[操作方法] : {info.get('controls', 'None')}")
+                            print(f"[rule]   : {info.get('rule', 'None')}")
+                            print(f"[controls] : {info.get('controls', 'None')}")
                     except Exception as e:
                         # 何のエラーが出ているか画面に出すようにして原因を突き止めやすくする
-                        print(f"説明の読み込みエラー: {e}")
+                        print(f"READ ERROR: {e}")
 
                     # ランキングを表示する
                     print("\n----RANKING-------------")
