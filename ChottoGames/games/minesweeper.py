@@ -9,13 +9,13 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from lib import score, screen
 
 INFO = {
-    "title": "Minesweeper",
+    "title": "minesweeper",
     "rule": "80s kara no teiban PC game. bakudan wo sakete subete no masu wo akeyou!",
-    "controls": "↑↓←→: cursor idou | Enter: akeru | F: hata wo tateru",
+    "controls": "↑↓←→: cursor idou | Enter: akeru | F: hata wo tateru | xyz: muteki mode",
 }
 
 # 状態を表す定数（マジックワードの共通化）
-BOMB_MARK = "*" 
+BOMB_MARK = "*"
 UNOPENED_MARK = "□"
 FLAG_MARK = "F"
 
@@ -23,32 +23,12 @@ FLAG_MARK = "F"
 y = 0
 x = 0
 
-# 難易度設定
-LEVEL = int(sys.argv[1])
-
-match LEVEL:
-    case 1:
-        SIZE = 9
-        BOMB = 10
-    case 2:
-        SIZE = 16
-        BOMB = 40
-    case 3:
-        SIZE = 22
-        BOMB = 99
-    case 4:
-        SIZE = 27
-        BOMB = 99
-    case 5:
-        SIZE = 27
-        BOMB = 667
-    case _:
-        SIZE = 9
-        BOMB = 10  # タイポ（bomb ➔ BOMB）を修正
-
-# ステージを作る
-data_stage = [[0 for _ in range(SIZE)] for _ in range(SIZE)]
-display_stage = [[UNOPENED_MARK for _ in range(SIZE)] for _ in range(SIZE)]
+# グローバル変数の定義（main内部で初期化するため、器だけ用意）
+SIZE = 9
+BOMB = 10
+data_stage = []
+display_stage = []
+count_bomb = 0
 
 cell_color = {
     0: "\x1b[90m.\x1b[0m",
@@ -64,25 +44,6 @@ cell_color = {
     FLAG_MARK: "\x1b[38;5;226mF\x1b[0m",  # 黄色
     UNOPENED_MARK: "\x1b[38;5;242m□\x1b[0m",  # 少し明るめの枠線
 }
-
-# 爆弾を置く
-count_bomb = 0
-
-while count_bomb != BOMB:
-    put_x = random.randint(0, SIZE - 1)
-    put_y = random.randint(0, SIZE - 1)
-
-    if data_stage[put_y][put_x] != BOMB_MARK:
-        data_stage[put_y][put_x] = BOMB_MARK
-        count_bomb += 1
-
-        for dy in range(-1, 2):
-            for dx in range(-1, 2):
-                ny, nx = put_y + dy, put_x + dx
-
-                if 0 <= ny < SIZE and 0 <= nx < SIZE:
-                    if data_stage[ny][nx] != BOMB_MARK:
-                        data_stage[ny][nx] += 1
 
 # タイマー変数
 start_time = None
@@ -142,21 +103,71 @@ def game_over():
 
 
 def main():
-    global x, y, start_time
-    hit_bomb = 0  # ローカル変数として処理可能
+    global x, y
+    global start_time
+    global is_cheat
+    global SIZE, BOMB, data_stage, display_stage, count_bomb  # グローバルを書き換える
+
+    # ★【修正】初期化処理をすべて main() の中に引っ越す！
+    # これでメニュー画面から import されたときは実行されず安全になります
+    level_val = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+
+    match level_val:
+        case 1:
+            SIZE = 9
+            BOMB = 10
+        case 2:
+            SIZE = 16
+            BOMB = 40
+        case 3:
+            SIZE = 22
+            BOMB = 99
+        case 4:
+            SIZE = 27
+            BOMB = 99
+        case 5:
+            SIZE = 27
+            BOMB = 667
+        case _:
+            SIZE = 9
+            BOMB = 10
+
+    # ステージの生成
+    data_stage = [[0 for _ in range(SIZE)] for _ in range(SIZE)]
+    display_stage = [[UNOPENED_MARK for _ in range(SIZE)] for _ in range(SIZE)]
+
+    # 爆弾を置く
+    count_bomb = 0
+    while count_bomb != BOMB:
+        put_x = random.randint(0, SIZE - 1)
+        put_y = random.randint(0, SIZE - 1)
+
+        if data_stage[put_y][put_x] != BOMB_MARK:
+            data_stage[put_y][put_x] = BOMB_MARK
+            count_bomb += 1
+
+            for dy in range(-1, 2):
+                for dx in range(-1, 2):
+                    ny, nx = put_y + dy, put_x + dx
+
+                    if 0 <= ny < SIZE and 0 <= nx < SIZE:
+                        if data_stage[ny][nx] != BOMB_MARK:
+                            data_stage[ny][nx] += 1
+
+    hit_bomb = 0
     remaining = SIZE * SIZE
     input_history = []
-    is_cheat = False
+    is_cheat = 0
 
     while True:
         show_stage()
         print("-" * 40)
         print(INFO["controls"])
-        if LEVEL == 4:
+        if is_cheat == 1:
             print(f"Bombs Hit: {hit_bomb}")
         print("-" * 40)
 
-        if is_cheat and data_stage[y][x] == BOMB_MARK:
+        if is_cheat == 2 and data_stage[y][x] == BOMB_MARK:
             print("#")
 
         key = readchar.readkey()
@@ -166,8 +177,11 @@ def main():
             if len(input_history) > 5:
                 input_history.pop(0)
 
+        if "".join(input_history) == "xyz":
+            is_cheat = 1
+
         if "".join(input_history) == "xyzzy":
-            is_cheat = True
+            is_cheat = 2
 
         match key:
             case readchar.key.DOWN:
@@ -182,14 +196,14 @@ def main():
                 if start_time is None:
                     timer_start()
 
-                # 既に開いている場所やフラグの場所は何もしない
                 if display_stage[y][x] != UNOPENED_MARK:
                     continue
 
                 if data_stage[y][x] == BOMB_MARK:
-                    if LEVEL == 4:
+                    level_val = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+                    if level_val == 4:
                         hit_bomb += 1
-                        display_stage[y][x] = BOMB_MARK  # 爆弾を踏んだ印
+                        display_stage[y][x] = BOMB_MARK
                         continue
                     else:
                         game_over()
@@ -215,7 +229,9 @@ def main():
 
 
 if __name__ == "__main__":
-    # mainの結果（クリア判定と被弾数）を受け取る
+    # 自分が直接「python minesweeper.py 1」などで動かしたときだけ実行される聖域
+    level_arg = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+
     is_clear, final_hit_bomb = main()
 
     if start_time is None:
@@ -226,10 +242,12 @@ if __name__ == "__main__":
 
     if is_clear:
         print("Game Clear!")
-        if LEVEL != 4:
-            score.save(LEVEL, stop_time)
+        if is_cheat == 1:
+            score.save("minesweeper", level_arg, int(stop_time), final_hit_bomb)
+        elif is_cheat == 2:
+            score.save("minesweeper", level_arg, int(stop_time), "Cheat_mode")
         else:
-            score.save(LEVEL, int(stop_time), final_hit_bomb)
+            score.save("minesweeper", level_arg, int(stop_time))
 
     print("Press Enter key to return to menu...")
     readchar.readkey()

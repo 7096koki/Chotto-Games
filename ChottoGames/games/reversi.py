@@ -2,6 +2,7 @@ import random
 import sys
 import os
 import random
+
 import readchar
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
@@ -9,8 +10,8 @@ from lib import screen
 
 INFO = {
     "title": "Reversi",
-    "rule": "hikkurikaesite asobu teiban board game!",
-    "controls": "↑↓←→: cursor idou | Enter: tama wo oku",
+    "rule": "hikkurikaesite asobu teiban board game.",
+    "controls": "↑↓←→: cursor idou | Enter: tama wo oku"
 }
 
 SIZE = 8

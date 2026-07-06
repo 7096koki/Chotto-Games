@@ -26,19 +26,23 @@ def menu():
         "reversi": 1
     }
 
+
     while True: 
         while True:
             select_game = game_list[cursor_pos]
             level = current_level_list[select_game]
     
             screen.clear()
-            print("Welcome to ChottoGames!")
+
+            print("\033[1m==============================\033[0m")
+            print("\033[1m   Welcome to Chotto-Games!\033[0m")
+            print("\033[1m==============================\033[0m\n")
             print("====MENU============================")
             for i, show_game in enumerate(game_list):
                 if cursor_pos == i:
-                    print("\033[7m" + show_game + "\033[0m")  # 選択中のゲームの表示
+                    print(f"\033[44:7m{show_game}\033[0m")  # 選択中のゲームの表示
                 else:
-                    print(show_game)
+                    print(f"\033[34m{show_game}\033[0m")
             
             print(f"Level: {level}")
 
@@ -57,6 +61,9 @@ def menu():
                     current_level_list[select_game] = max(1, level - 1)
                 case "i" | "I":
                     # インフォメーション機能
+                    print("\033[92m====INFOMATION==============")
+
+                    print("----GAME DETAIL---------")
                     try:
                         # 確実に games フォルダの中のファイルを絶対パスで指定する
                         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -74,8 +81,8 @@ def menu():
                         # ゲーム側に INFO が定義されていたら表示する
                         if hasattr(game_module, "INFO"):
                             info = game_module.INFO
-                            print(f"[rule]   : {info.get('rule', 'None')}")
-                            print(f"[controls] : {info.get('controls', 'None')}")
+                            print(f"RULE     : {info.get('rule', 'None')}")
+                            print(f"CONTROLS : {info.get('controls', 'None')}")
                     except Exception as e:
                         # 何のエラーが出ているか画面に出すようにして原因を突き止めやすくする
                         print(f"READ ERROR: {e}")
@@ -85,9 +92,15 @@ def menu():
                     ranking = score.load(select_game, level)
                     if ranking != []:
                         for i, record in enumerate(ranking):
-                            print(f"{i}. {record}")
+                            if i < 9:
+                                print(f" {i + 1}. {record}")
+                            else:
+                                print(f"{i + 1}. {record}")
+
                     else:
-                        print("Not found")
+                        print("Not found\033")
+                    
+                    print("\033[0m", end="")
                     readchar.readkey()
                 case _:
                     pass

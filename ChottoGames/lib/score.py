@@ -1,13 +1,11 @@
 import json
 import os
-import inspect
 
 SAVE_FILE_PATH = "score.json"
 
-def save(level, new_score, *user_data):
-    # 呼び出し元のファイル名からゲーム名を取得
-    game_name = os.path.splitext(os.path.basename(inspect.stack()[1].filename))[0]
 
+# 【修正】第一引数に game_name を手動で渡すように変更！
+def save(game_name, level, new_score, *option_data):
     if os.path.exists(SAVE_FILE_PATH):
         with open(SAVE_FILE_PATH, "r", encoding="utf-8") as f:
             all_data = json.load(f)
@@ -21,26 +19,19 @@ def save(level, new_score, *user_data):
     if level_str not in all_data[game_name]:
         all_data[game_name][level_str] = []
 
-    # スコアデータ構造: [スコア, 追加データ1, 追加データ2, ...]
-    # user_dataはタプルなので、リストに展開して結合する
-    score_entry = [new_score] + list(user_data)
+    score_entry = [new_score] + list(option_data)
     all_data[game_name][level_str].append(score_entry)
 
-    # ソート（リストの最初の要素である「スコア」を基準に自動で昇順ソートされる！）
+    # 昇順ソート
     all_data[game_name][level_str].sort(key=lambda x: x[0])
-
-    # 上位10件をキープ
-    all_data[game_name][level_str] = all_data[game_name][level_str][:10]
+    # 10個までのデータに絞りたい場合は下のコードを追加
+    # all_data[game_name][level_str] = all_data[game_name][level_str][:10]
 
     with open(SAVE_FILE_PATH, "w", encoding="utf-8") as f:
         json.dump(all_data, f, indent=4)
 
 
 def load(game_name, level):
-    """
-    引数のゲームとレベルに応じたランキング（最大10件）を返す。
-    データが存在しない場合は空のリスト [] を返す。
-    """
     if not os.path.exists(SAVE_FILE_PATH):
         return []
 
@@ -48,6 +39,22 @@ def load(game_name, level):
         all_data = json.load(f)
 
     level_str = str(level)
-    
-    # 指定されたゲームやレベルのデータがない場合は空のリストを安全に返す
-    return [item for sublist in (all_data.get(game_name, {}).get(level_str, [])) for item in sublist]
+    raw_records = all_data.get(game_name, {}).get(level_str, [])
+
+    formatted_ranking = []
+
+    # raw_records は [[11, 0], [12, 1]] のようなリストのリスト
+    for record in raw_records:
+        score_val = record[0]  # 最初の要素は必ずメインスコア（手数など）
+
+        # オプションデータ（ヒントなど）があるかチェック
+        if len(record) > 1:
+            hint_val = record[1]
+            # ローマ字の世界観に合わせて、文字列を作成
+            formatted_ranking.append(f"{score_val} (Hint count: {hint_val})")
+        else:
+            # マインスイーパーなど、スコア（タイムなど）だけのとき
+            formatted_ranking.append(f"{score_val / 1000}s")
+
+    # 例: ["11 tewaza (Hint: 0)", "12 tewaza (Hint: 1)"] というリストが返る
+    return formatted_ranking
