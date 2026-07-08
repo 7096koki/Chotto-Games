@@ -52,9 +52,8 @@ def reverse(px, py, turn):
     r = 0
     while (not is_end) or ix < SIZE - 1:
         ix += 1
-        r += 1
         if stage[iy][ix] == turn:
-            stage[iy][px:ix] =list(turn * r)
+            stage[iy][px:ix] =list(turn * (ix - px))
             break
 
 def main():

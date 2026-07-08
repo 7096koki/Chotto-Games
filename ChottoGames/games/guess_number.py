@@ -18,13 +18,13 @@ def main():
     global count
     global hint_count
     count = 0
-    n = random.randint(1, max_n)
+    n = random.randint(min_n, max_n)
     history = []  # 過去の入力を保存するリスト
     history_index = -1  # 今、履歴のどこを見ているか（-1は未選択）
     hint_count = 0
 
     # 最小レンジと最大レンジの初期値を、ゲームの限界値にしておく
-    min_range = 1
+    min_range = min_n
     max_range = max_n
 
     while True:
@@ -131,6 +131,7 @@ def main():
 if __name__ == "__main__":
     LEVEL = int(sys.argv[1])
     max_n = 10**LEVEL
-    print(f"Lv.{LEVEL}: 1 ~ {max_n}")
+    min_n = max_n // 10
+    print(f"Lv.{LEVEL}: {min_n} ~ {max_n}")
     main()
     score.save("guess_number", LEVEL, count, hint_count)

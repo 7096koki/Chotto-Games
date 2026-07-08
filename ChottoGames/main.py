@@ -13,17 +13,17 @@ from lib import score
 
 def menu():
     cursor_pos = 0
-
-    game_list = ["guess_number", "minesweeper", "reversi"]
+    
+    game_list = ["guess_number", "minesweeper", "sneak"]
     game_level_list = {
         "guess_number": 255,
         "minesweeper": 6,
-        "reversi": 1
+        "sneak": 1
     }
     current_level_list = {
         "guess_number": 1,
         "minesweeper": 1,
-        "reversi": 1
+        "sneak": 1
     }
 
 

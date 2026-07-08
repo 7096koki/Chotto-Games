@@ -6,7 +6,7 @@ import time
 import readchar
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
-from lib import score, screen
+from lib import score, screen, timer
 
 INFO = {
     "title": "minesweeper",
@@ -23,7 +23,7 @@ FLAG_MARK = "F"
 y = 0
 x = 0
 
-# グローバル変数の定義（main内部で初期化するため、器だけ用意）
+# グローバル変数の定義
 SIZE = 9
 BOMB = 10
 data_stage = []
@@ -44,14 +44,6 @@ cell_color = {
     FLAG_MARK: "\x1b[38;5;226mF\x1b[0m",  # 黄色
     UNOPENED_MARK: "\x1b[38;5;242m□\x1b[0m",  # 少し明るめの枠線
 }
-
-# タイマー変数
-start_time = None
-
-
-def timer_start():
-    global start_time
-    start_time = time.time()
 
 
 def open_cell(oy, ox):
@@ -104,12 +96,9 @@ def game_over():
 
 def main():
     global x, y
-    global start_time
     global is_cheat
-    global SIZE, BOMB, data_stage, display_stage, count_bomb  # グローバルを書き換える
+    global SIZE, BOMB, data_stage, display_stage, count_bomb
 
-    # ★【修正】初期化処理をすべて main() の中に引っ越す！
-    # これでメニュー画面から import されたときは実行されず安全になります
     level_val = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 
     match level_val:
@@ -159,10 +148,20 @@ def main():
     input_history = []
     is_cheat = 0
 
+    # 💡 最初のEnterを押す前にタイマーが呼ばれた時用のフラグ管理
+    timer_started = False
+
     while True:
         show_stage()
         print("-" * 40)
         print(INFO["controls"])
+        
+        # 💡 【追加機能】プレイ中も画面に現在のタイムをリアルタイム表示！
+        if timer_started:
+            print(f"TIME: {timer.get_elapsed_seconds_str()}")
+        else:
+            print("TIME: 0.000s")
+            
         if is_cheat == 1:
             print(f"Bombs Hit: {hit_bomb}")
         print("-" * 40)
@@ -193,8 +192,10 @@ def main():
             case readchar.key.RIGHT:
                 x = min(SIZE - 1, x + 1)
             case readchar.key.ENTER:
-                if start_time is None:
-                    timer_start()
+                # 💡 【変更】タイマーの起動を共通ライブラリの関数に変更
+                if not timer_started:
+                    timer.start()
+                    timer_started = True
 
                 if display_stage[y][x] != UNOPENED_MARK:
                     continue
@@ -229,25 +230,21 @@ def main():
 
 
 if __name__ == "__main__":
-    # 自分が直接「python minesweeper.py 1」などで動かしたときだけ実行される聖域
     level_arg = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 
     is_clear, final_hit_bomb = main()
 
-    if start_time is None:
-        start_time = time.time()
-
-    stop_time = int((time.time() - start_time) * 1000)
-    print(f"TIME: {stop_time / 1000:.3f}s")
+    stop_time = timer.get_elapsed_ms()
+    print(f"FINAL TIME: {timer.get_elapsed_seconds_str()}")
 
     if is_clear:
         print("Game Clear!")
         if is_cheat == 1:
-            score.save("minesweeper", level_arg, int(stop_time), final_hit_bomb)
+            score.save("minesweeper", level_arg, stop_time, final_hit_bomb)
         elif is_cheat == 2:
-            score.save("minesweeper", level_arg, int(stop_time), "Cheat_mode")
+            score.save("minesweeper", level_arg, stop_time, "Cheat_mode")
         else:
-            score.save("minesweeper", level_arg, int(stop_time))
+            score.save("minesweeper", level_arg, stop_time)
 
     print("Press Enter key to return to menu...")
     readchar.readkey()
