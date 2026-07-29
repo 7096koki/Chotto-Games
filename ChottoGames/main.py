@@ -1,35 +1,122 @@
+import importlib
+import time
 import subprocess
 import os
+import sys
+import readchar
+# 元のパス（libフォルダなどを見つける用）
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from lib import screen, score
+
 
 def menu():
-    game_list = ["guess_number", "minesweeper"]
-    print("Welcome to ChottoGames!")
+    cursor_pos = 0
+    
+    game_list = ["guess_number", "minesweeper", "sneak"]
+    game_level_list = {
+        "guess_number": 255,
+        "minesweeper": 5,
+        "sneak": 9
+    }
+    current_level_list = {
+        "guess_number": 1,
+        "minesweeper": 1,
+        "sneak": 1
+    }
 
-    while True:
-        print("====MENU============================")
-        for n, show_name in enumerate(game_list, 0):
-            print(f"{n}. {show_name}")
 
-        select = input("game number: ")
-        
-        try:
-            select = int(select)
-        except ValueError:
-            print("not found")
-            continue
-        
-        if select < 0 or select >= len(game_list):
-            print("not found")
-            continue
-        
-        print(f"===={game_list[select]}============================")
+    while True: 
+        while True:
+            select_game = game_list[cursor_pos]
+            level = current_level_list[select_game]
+    
+            screen.clear(1)
+
+            print("\033[1m==============================\033[0m")
+            print("\033[1m   Welcome to Chotto-Games!   \033[0m")
+            print("\033[1m==============================\033[0m\n")
+            print("====MENU============================")
+            for i, show_game in enumerate(game_list):
+                if cursor_pos == i:
+                    print(f"\033[44:7m{show_game}\033[0m")  # 選択中のゲームの表示
+                else:
+                    print(f"\033[34m{show_game}\033[0m")
+            
+            print("-----------------------------------")
+            print(f"Level: {level}")
+
+            # キー入力を受け付ける
+            match readchar.readkey():
+                case readchar.key.UP:
+                    cursor_pos = max(0, cursor_pos - 1)
+                case readchar.key.DOWN:
+                    cursor_pos = min(len(game_list) - 1, cursor_pos + 1)
+                case readchar.key.ENTER:
+                    select_game = game_list[cursor_pos]
+                    break
+                case readchar.key.RIGHT:
+                    current_level_list[select_game] = min(game_level_list[game_list[cursor_pos]], level + 1)
+                case readchar.key.LEFT:
+                    current_level_list[select_game] = max(1, level - 1)
+                case "i" | "I":
+                    # インフォメーション機能
+                    print("\033[92m====INFOMATION==============")
+
+                    print("----GAME DETAIL---------")
+                    try:
+                        # 確実に games フォルダの中のファイルを絶対パスで指定する
+                        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+                        game_path = os.path.join(
+                            BASE_DIR, "games", f"{select_game}.py"
+                        )
+
+                        # ファイルパスから直接モジュールを読み込む魔法
+                        spec = importlib.util.spec_from_file_location(
+                            select_game, game_path
+                        )
+                        game_module = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(game_module)
+
+                        # ゲーム側に INFO が定義されていたら表示する
+                        if hasattr(game_module, "INFO"):
+                            info = game_module.INFO
+                            print(f"RULE     : {info.get('rule', 'None')}")
+                            print(f"CONTROLS : {info.get('controls', 'None')}")
+                    except Exception as e:
+                        # 何のエラーが出ているか画面に出すようにして原因を突き止めやすくする
+                        print(f"READ ERROR: {e}")
+
+                    # ランキングを表示する
+                    print("\n----RANKING-------------")
+                    ranking = score.load(select_game, level)
+                    if ranking != []:
+                        for i, record in enumerate(ranking):
+                            if i < 9:
+                                print(f" {i + 1}. {record}")
+                            else:
+                                print(f"{i + 1}. {record}")
+
+                    else:
+                        print("Not found\033")
+                    
+                    print("\033[0m", end="")
+                    readchar.readkey()
+                case _:
+                    pass
+
+        screen.clear(1)
+
+        print(f"===={select_game}============================")
 
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        game_path = os.path.join(BASE_DIR, "games", f"{game_list[select]}.py")
+        game_path = os.path.join(BASE_DIR, "games", f"{select_game}.py")
+
+        time.sleep(1.0) # ゲーム開始前のまたーりタイム
 
         # ゲームを実行する
         try:
-            exec_game_proc = subprocess.Popen(["python3", game_path], stderr=subprocess.DEVNULL)
+            exec_game_proc = subprocess.Popen(["python3", "-u", game_path, str(level)], stderr=subprocess.DEVNULL)
             # ゲームが終わるまで待つ
             exec_game_proc.wait()
         except KeyboardInterrupt:
@@ -38,5 +125,6 @@ def menu():
         
         print()
 
-
+# 実行するやつコーナー
+screen.clear(1)
 menu()
