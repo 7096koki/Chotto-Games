@@ -11,7 +11,7 @@ from lib import score, screen, timer
 INFO = {
     "title": "minesweeper",
     "rule": "80s kara no teiban PC game. bakudan wo sakete subete no masu wo akeyou!",
-    "controls": "↑↓←→: cursor idou | Enter: akeru | F: hata wo tateru | xyz: muteki mode",
+    "controls": "↑↓←→: cursor idou | Enter: akeru | space: hata wo tateru | xyz: muteki mode",
 }
 
 # 状態を表す定数（マジックワードの共通化）
@@ -211,7 +211,7 @@ def main():
                         return False, hit_bomb
 
                 open_cell(y, x)
-            case "f" | "F":
+            case readchar.key.SPACE:
                 if display_stage[y][x] == UNOPENED_MARK:
                     display_stage[y][x] = FLAG_MARK
                 elif display_stage[y][x] == FLAG_MARK:

@@ -28,6 +28,9 @@ def main():
     max_range = max_n
 
     while True:
+        print("\033[6;1H\033[0K" + "-" * 40)
+        print(f"\033[7;1H\033[0K{INFO["controls"]}")
+
         # 自作の文字入力バッファ
         current_input = ""
         cursor_idx = 0  # ここで毎回、カーソル位置を0に初期化
@@ -101,7 +104,7 @@ def main():
                         current_input += key
                     cursor_idx += 1
 
-            # --- Linuxのエスケープシーケンスで画面を再描画 ---
+            # --- エスケープシーケンスで画面を再描画 ---
             print(f"\033[3;1H\033[0Kanswer: {current_input}", end="")
             actual_col = 8 + cursor_idx + 1
             print(f"\033[3;{actual_col}H", end="", flush=True)

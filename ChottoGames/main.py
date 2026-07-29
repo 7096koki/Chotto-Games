@@ -18,7 +18,7 @@ def menu():
     game_level_list = {
         "guess_number": 255,
         "minesweeper": 6,
-        "sneak": 1
+        "sneak": 9
     }
     current_level_list = {
         "guess_number": 1,
@@ -35,7 +35,7 @@ def menu():
             screen.clear()
 
             print("\033[1m==============================\033[0m")
-            print("\033[1m   Welcome to Chotto-Games!\033[0m")
+            print("\033[1m   Welcome to Chotto-Games!   \033[0m")
             print("\033[1m==============================\033[0m\n")
             print("====MENU============================")
             for i, show_game in enumerate(game_list):
@@ -44,6 +44,7 @@ def menu():
                 else:
                     print(f"\033[34m{show_game}\033[0m")
             
+            print("-----------------------------------")
             print(f"Level: {level}")
 
             # キー入力を受け付ける

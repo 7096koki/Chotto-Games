@@ -1,2 +1,2 @@
 def clear():
-    print("\033[2J\033[H", end="")
+    print("\x1b[2;1H\x1b[J", end="")
