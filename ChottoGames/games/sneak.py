@@ -4,11 +4,9 @@ import sys
 import threading
 import time
 
-import readchar
-
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 
-from lib import score, screen, timer
+from lib import controls, score, screen
 
 INFO = {
     "title": "sneak",
@@ -18,10 +16,13 @@ INFO = {
 
 SIZE = {"x": 17, "y": 15}
 
-stage = [["." for _ in range(SIZE["x"])] for _ in range(SIZE["y"])]
+stage = [
+    ["\x1b[38;5;242m.\x1b[0m" for _ in range(SIZE["x"])]
+    for _ in range(SIZE["y"])
+]
 
 direction = "right"
-timer_started = False  # タイマーが始まっているかどうかのフラグ
+is_running = True  # スレッド停止用フラグ
 
 
 def show_stage():
@@ -29,31 +30,26 @@ def show_stage():
     for row in stage:
         for cell in row:
             print(cell, end=" ")
-        print()
-    print(f"Direction: {direction}")
+        print("\r")
 
 
 def key_input():
-    global direction, timer_started
-    while True:
-        key = readchar.readkey()
-
-        # 初めてキーを押した瞬間にタイマーをスタート
-        if not timer_started:
-            timer.start()
-            timer_started = True
+    global direction, is_running
+    # ゲーム実行中のみキー監視を行う（メニューに戻った後の画面崩れ防止）
+    while is_running:
+        key = controls.readkey()
 
         match key:
-            case readchar.key.DOWN:
+            case "DOWN":
                 if direction != "up":
                     direction = "down"
-            case readchar.key.UP:
+            case "UP":
                 if direction != "down":
                     direction = "up"
-            case readchar.key.LEFT:
+            case "LEFT":
                 if direction != "right":
                     direction = "left"
-            case readchar.key.RIGHT:
+            case "RIGHT":
                 if direction != "left":
                     direction = "right"
 
@@ -64,21 +60,19 @@ def spawn_food(snake):
         fx = random.randint(0, SIZE["x"] - 1)
         fy = random.randint(0, SIZE["y"] - 1)
         if [fx, fy] not in snake:
-            stage[fy][fx] = "@"
+            stage[fy][fx] = "\033[31m@\033[0m"
             return fx, fy
 
 
 def main():
-    global direction, timer_started
+    global direction, is_running
     direction = "right"
-    timer_started = False  # リセット
+    is_running = True
 
     # コマンドライン引数からレベル（1〜9）を取得（デフォルトはレベル 1）
     level_val = int(sys.argv[1]) if len(sys.argv) > 1 else 1
     level_val = max(1, min(9, level_val))  # 1〜9の範囲に収める
 
-    # レベル1(1.0s) 〜 レベル9(0.021s) のスピード設定
-    # レベルが上がるにつれて感覚的に心地よく速くなる指数計算
     speed_map = {
         1: 1.0,
         2: 0.6,
@@ -96,13 +90,21 @@ def main():
     snake = [[8, 8], [7, 8], [6, 8]]
 
     for pos in snake:
-        stage[pos[1]][pos[0]] = "#"
-
-    listener_thread = threading.Thread(target=key_input, daemon=True)
-    listener_thread.start()
+        stage[pos[1]][pos[0]] = "\033[32m#\033[0m"
 
     # 最初のエサを配置
     food_x, food_y = spawn_food(snake)
+
+    # 1. 最初にステージを描画
+    show_stage()
+    print("Press Any Key to Start...\r")
+
+    # 2. スタート待ち（スレッド起動前に1回だけ取得）
+    controls.readkey()
+
+    # 3. キー監視スレッドを起動
+    listener_thread = threading.Thread(target=key_input, daemon=True)
+    listener_thread.start()
 
     while True:
         show_stage()
@@ -121,47 +123,44 @@ def main():
 
         # 1. 壁判定
         if not (0 <= head_x < SIZE["x"] and 0 <= head_y < SIZE["y"]):
-            print("\nGAME OVER (Hit Wall!)")
+            print("\r\nGAME OVER (Hit Wall!)\r")
             break
 
         # 2. 自分の体への衝突判定
         if [head_x, head_y] in snake[:-1]:
-            print("\nGAME OVER (Hit Yourself!)")
+            print("\r\nGAME OVER (Hit Yourself!)\r")
             break
 
         # 3. エサを食べた判定
         if head_x == food_x and head_y == food_y:
-            # エサを食べた：お尻は消さずに頭だけ伸ばす
             snake.insert(0, [head_x, head_y])
-            stage[head_y][head_x] = "#"
-
-            # 新しいエサを生成
+            stage[head_y][head_x] = "\033[32m#\033[0m"
             food_x, food_y = spawn_food(snake)
         else:
-            # 通常移動：お尻を消して頭を伸ばす
             tail = snake.pop()
-            stage[tail[1]][tail[0]] = "."
-
+            stage[tail[1]][tail[0]] = "\x1b[38;5;242m.\x1b[0m"
             snake.insert(0, [head_x, head_y])
-            stage[head_y][head_x] = "#"
+            stage[head_y][head_x] = "\033[32m#\033[0m"
 
         time.sleep(sleep_time)
 
-    # タイムとスコアの処理
-    stop_time = timer.get_elapsed_ms()
+    # ゲーム終了に伴いキー監視スレッドを停止
+    is_running = False
+
+    # スコアの処理
     final_score = len(snake)
 
-    print("-" * 30)
-    print(f"LEVEL: {level_val}")
-    print(f"TIME : {timer.get_elapsed_seconds_str()}")
-    print(f"SCORE: {final_score}")
-    print("-" * 30)
+    print("-" * 30 + "\r")
+    print(f"SCORE: {final_score}\r")
 
-    # 引数で渡されたレベル（level_val）を渡して保存
-    score.save("snake", level_val, stop_time, final_score)
+    score.save("sneak", level_val, final_score)
 
-    print("Press Enter key to return...")
-    readchar.readkey()
+    time.sleep(0.2)
+    print("Press Enter key to return...\r")
+    controls.readkey()
+
+    # プロセスを確実に終了して親プロセス（メニュー）に復帰
+    sys.exit(0)
 
 
 if __name__ == "__main__":

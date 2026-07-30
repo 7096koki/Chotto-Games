@@ -5,12 +5,12 @@ import os
 import readchar
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
-from lib import score
+from lib import score, controls
 
 INFO = {
     "title": "guess_number",
     "rule": "goku hutu no kazuate game desu.",
-    "controls": "number key: kazu nyuryoku | Enter: kettei | ↑↓: rireki shutoku | H: Hint no hyouji",
+    "controls": "number key: kazu nyuryoku | Enter: kettei | ↑↓: rireki shutoku | Space: Hint no hyouji",
 }
 
 
@@ -38,23 +38,23 @@ def main():
 
         # Enterが押されるまで1文字ずつ入力を受け付けるループ
         while True:
-            key = readchar.readkey()
+            key = controls.readkey()
 
             match key:
-                case readchar.key.ENTER:
+                case "ENTER":
                     if current_input.isdigit():  # 数字が入っていれば確定
                         break
                     elif len(current_input) == 0:
                         continue  # 空っぽなら無視
 
-                case readchar.key.UP:
+                case "UP":
                     # 上矢印：過去の履歴を最新から遡る
                     if len(history) > 0:
                         history_index = min(history_index + 1, len(history) - 1)
                         current_input = str(history[-(history_index + 1)])
                         cursor_idx = len(current_input)
 
-                case readchar.key.DOWN:
+                case "DOWN":
                     # 下矢印：履歴を戻す
                     if history_index > 0:
                         history_index -= 1
@@ -65,13 +65,13 @@ def main():
                         current_input = ""
                         cursor_idx = 0
 
-                case readchar.key.LEFT:
+                case "LEFT":
                     cursor_idx = max(0, cursor_idx - 1)
 
                 case readchar.key.RIGHT:
                     cursor_idx = min(len(current_input), cursor_idx + 1)
 
-                case "h" | "H":
+                case "SPACE":
                     # 【修正】まだ確定前のanswerは使えないので、現在の入力文字(あれば)か履歴の最後を使う
                     if LEVEL != 1:
                         print(
@@ -85,7 +85,7 @@ def main():
                         time.sleep(1.0)
                         print("\033[5;1H\033[0K")
 
-                case readchar.key.BACKSPACE | "\x7f":
+                case "\x7f":
                     if cursor_idx > 0:
                         current_input = (
                             current_input[: cursor_idx - 1]
@@ -127,7 +127,7 @@ def main():
                 f"\033[4;1H\033[0KCorrect answer after {count} time! (Hint used: {hint_count})"
             )
             print("Press any key to return to menu...")
-            readchar.readkey()
+            controls.readkey()
             break
 
 

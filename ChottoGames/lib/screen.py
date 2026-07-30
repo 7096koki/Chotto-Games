@@ -1,2 +1,2 @@
-def clear():
-    print("\x1b[2;1H\x1b[J", end="")
+def clear(row=2):
+    print(f"\x1b[{row};1H\x1b[J", end="")

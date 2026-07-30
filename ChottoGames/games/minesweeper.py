@@ -3,10 +3,8 @@ import random
 import sys
 import time
 
-import readchar
-
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
-from lib import score, screen, timer
+from lib import score, screen, timer, controls
 
 INFO = {
     "title": "minesweeper",
@@ -169,7 +167,7 @@ def main():
         if is_cheat == 2 and data_stage[y][x] == BOMB_MARK:
             print("#")
 
-        key = readchar.readkey()
+        key = controls.readkey()
 
         if isinstance(key, str):
             input_history.append(key.lower())
@@ -183,15 +181,15 @@ def main():
             is_cheat = 2
 
         match key:
-            case readchar.key.DOWN:
+            case "DOWN":
                 y = min(SIZE - 1, y + 1)
-            case readchar.key.UP:
+            case "UP":
                 y = max(0, y - 1)
-            case readchar.key.LEFT:
+            case "LEFT":
                 x = max(0, x - 1)
-            case readchar.key.RIGHT:
+            case "RIGHT":
                 x = min(SIZE - 1, x + 1)
-            case readchar.key.ENTER:
+            case "ENTER":
                 # 💡 【変更】タイマーの起動を共通ライブラリの関数に変更
                 if not timer_started:
                     timer.start()
@@ -211,7 +209,7 @@ def main():
                         return False, hit_bomb
 
                 open_cell(y, x)
-            case readchar.key.SPACE:
+            case "SPACE":
                 if display_stage[y][x] == UNOPENED_MARK:
                     display_stage[y][x] = FLAG_MARK
                 elif display_stage[y][x] == FLAG_MARK:
@@ -247,4 +245,4 @@ if __name__ == "__main__":
             score.save("minesweeper", level_arg, stop_time)
 
     print("Press Enter key to return to menu...")
-    readchar.readkey()
+    controls.readkey()
