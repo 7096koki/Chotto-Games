@@ -9,4 +9,4 @@ This is a project to reproduce a small masterpiece game using Python's TUI.
 3. You can start it by running "python3 main.py".
 
 # Required module
-- readchar
+No modules required. I'm working hard to complete it with standard modules!
