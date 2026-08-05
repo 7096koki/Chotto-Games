@@ -1,7 +1,6 @@
 import os
 import random
 import sys
-import time
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from lib import score, screen, timer, controls
@@ -10,6 +9,7 @@ INFO = {
     "title": "minesweeper",
     "rule": "80s kara no teiban PC game. bakudan wo sakete subete no masu wo akeyou!",
     "controls": "↑↓←→: cursor idou | Enter: akeru | space: hata wo tateru | xyz: muteki mode",
+    "max_level": 5
 }
 
 # 状態を表す定数（マジックワードの共通化）
@@ -146,7 +146,7 @@ def main():
     input_history = []
     is_cheat = 0
 
-    # 💡 最初のEnterを押す前にタイマーが呼ばれた時用のフラグ管理
+    # 最初のEnterを押す前にタイマーが呼ばれた時用のフラグ管理
     timer_started = False
 
     while True:
@@ -154,7 +154,7 @@ def main():
         print("-" * 40)
         print(INFO["controls"])
         
-        # 💡 【追加機能】プレイ中も画面に現在のタイムをリアルタイム表示！
+        # プレイ中も画面に現在のタイムをリアルタイム表示
         if timer_started:
             print(f"TIME: {timer.get_elapsed_seconds_str()}")
         else:
@@ -190,7 +190,7 @@ def main():
             case "RIGHT":
                 x = min(SIZE - 1, x + 1)
             case "ENTER":
-                # 💡 【変更】タイマーの起動を共通ライブラリの関数に変更
+                # タイマーの起動を共通ライブラリの関数に変更
                 if not timer_started:
                     timer.start()
                     timer_started = True
@@ -237,12 +237,13 @@ if __name__ == "__main__":
 
     if is_clear:
         print("Game Clear!")
-        if is_cheat == 1:
-            score.save("minesweeper", level_arg, stop_time, final_hit_bomb)
-        elif is_cheat == 2:
-            score.save("minesweeper", level_arg, stop_time, "Cheat_mode")
-        else:
-            score.save("minesweeper", level_arg, stop_time)
+        match is_cheat:
+            case 1:
+                score.save("minesweeper", level_arg, stop_time, final_hit_bomb)
+            case 2:
+                score.save("minesweeper", level_arg, stop_time, "Cheat_mode")
+            case _:
+                score.save("minesweeper", level_arg, stop_time)
 
     print("Press Enter key to return to menu...")
     controls.readkey()

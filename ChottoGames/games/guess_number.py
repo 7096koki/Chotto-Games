@@ -2,7 +2,6 @@ import random
 import sys
 import time
 import os
-import readchar
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from lib import score, controls
@@ -11,6 +10,7 @@ INFO = {
     "title": "guess_number",
     "rule": "goku hutu no kazuate game desu.",
     "controls": "number key: kazu nyuryoku | Enter: kettei | ↑↓: rireki shutoku | Space: Hint no hyouji",
+    "max_level": 255
 }
 
 
@@ -68,7 +68,7 @@ def main():
                 case "LEFT":
                     cursor_idx = max(0, cursor_idx - 1)
 
-                case readchar.key.RIGHT:
+                case "RIGHT":
                     cursor_idx = min(len(current_input), cursor_idx + 1)
 
                 case "SPACE":
@@ -85,7 +85,7 @@ def main():
                         time.sleep(1.0)
                         print("\033[5;1H\033[0K")
 
-                case "\x7f":
+                case "BACKSPACE":
                     if cursor_idx > 0:
                         current_input = (
                             current_input[: cursor_idx - 1]

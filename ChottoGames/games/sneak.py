@@ -12,6 +12,7 @@ INFO = {
     "title": "sneak",
     "rule": "yajirushi de hebi wo ayatutte esa wo tabesaseyou!",
     "controls": "↑↓←→: houkou tenkan",
+    "max_level": 9
 }
 
 SIZE = {"x": 17, "y": 15}

@@ -1,23 +1,55 @@
-import importlib
-import time
-import subprocess
+import importlib.util
 import os
+import subprocess
 import sys
+import time
+
 # 元のパス（libフォルダなどを見つける用）
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from lib import screen, score, controls
+from lib import controls, score, screen
+
+
+def load_game_info(game_key: str) -> dict:
+    """games/{game_key}.py から INFO 辞書を読み込むヘルパー関数"""
+    try:
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        game_path = os.path.join(BASE_DIR, "games", f"{game_key}.py")
+
+        spec = importlib.util.spec_from_file_location(game_key, game_path)
+        if spec and spec.loader:
+            game_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(game_module)
+            if hasattr(game_module, "INFO"):
+                return getattr(game_module, "INFO")
+    except Exception:
+        pass
+    return {}
 
 
 def menu():
     cursor_pos = 0
 
-    # 1つの辞書に完全統合！
-    game_list = {
-        "guess_number": {"current_level": 1, "max_level": 255},
-        "minesweeper": {"current_level": 1, "max_level": 5},
-        "sneak": {"current_level": 1, "max_level": 9},
-    }
+    # gamesフォルダから自動的にゲームリストとmax_levelを取得！
+    # 先頭が _ や __ のファイル（WIPや内部用）は自動除外
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    games_dir = os.path.join(BASE_DIR, "games")
+
+    game_list = {}
+    if os.path.exists(games_dir):
+        # アルファベット順でソートして読み込み
+        for filename in sorted(os.listdir(games_dir)):
+            if filename.endswith(".py") and not filename.startswith(
+                ("_", "__")
+            ):
+                g_key = filename[:-3]  # ".py" を除去
+                info = load_game_info(g_key)
+                max_lvl = info.get("max_level", 1)
+                game_list[g_key] = {"current_level": 1, "max_level": max_lvl}
+
+    # 万が一ゲームが1つも見つからなかった場合のフォールバック（画面クラッシュ防止）
+    if not game_list:
+        game_list = {"guess_number": {"current_level": 1, "max_level": 255}}
 
     while True:
         while True:
@@ -46,9 +78,19 @@ def menu():
             # キー入力を受け付ける
             match controls.readkey():
                 case "UP":
-                    cursor_pos = max(0, cursor_pos - 1)
+                    if cursor_pos > 0:
+                        cursor_pos -= 1
+                        # 上下キーで違うゲームを選択すると1にリセット！
+                        new_key = list(game_list.keys())[cursor_pos]
+                        game_list[new_key]["current_level"] = 1
+
                 case "DOWN":
-                    cursor_pos = min(len(game_list) - 1, cursor_pos + 1)
+                    if cursor_pos < len(game_list) - 1:
+                        cursor_pos += 1
+                        # 上下キーで違うゲームを選択すると1にリセット！
+                        new_key = list(game_list.keys())[cursor_pos]
+                        game_list[new_key]["current_level"] = 1
+
                 case "ENTER":
                     # 選択決定！そのままループを抜ける
                     break
@@ -65,21 +107,15 @@ def menu():
                     print("\033[92m====INFOMATION==============")
                     print("----GAME DETAIL---------")
                     try:
-                        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-                        game_path = os.path.join(
-                            BASE_DIR, "games", f"{game_key}.py"
-                        )
-
-                        spec = importlib.util.spec_from_file_location(
-                            game_key, game_path
-                        )
-                        game_module = importlib.util.module_from_spec(spec)
-                        spec.loader.exec_module(game_module)
-
-                        if hasattr(game_module, "INFO"):
-                            info = game_module.INFO
+                        info = load_game_info(game_key)
+                        if info:
                             print(f"RULE     : {info.get('rule', 'None')}")
-                            print(f"CONTROLS : {info.get('controls', 'None')}")
+                            print(
+                                f"CONTROLS : {info.get('controls', 'None')}"
+                            )
+                        else:
+                            print("RULE     : None")
+                            print("CONTROLS : None")
                     except Exception as ex:
                         print(f"READ ERROR: {ex}")
 
@@ -118,13 +154,8 @@ def menu():
             exec_game_proc.wait()
         except KeyboardInterrupt:
             exec_game_proc.terminate()
-        
-        # ▼ ゲーム終了直後にターミナルを綺麗に掃除！ ▼
-        print("\033[0m\r", end="", flush=True)
-        screen.clear(1)
 
-        if sys.platform != "win32":
-            os.system("stty sane")  # Mac/Linuxの端末モードを初期状態に強制復元！
+        screen.clear(1)
 
 
 # 実行するやつコーナー
