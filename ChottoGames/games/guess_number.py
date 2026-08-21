@@ -4,13 +4,13 @@ import time
 import os
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
-from lib import score, controls
+from lib import score, controls, ui
 
 INFO = {
     "title": "guess_number",
     "rule": "goku hutu no kazuate game desu.",
     "controls": "number key: kazu nyuryoku | Enter: kettei | ↑↓: rireki shutoku | Space: Hint no hyouji",
-    "max_level": 255
+    "max_level": 255,
 }
 
 
@@ -28,7 +28,7 @@ def main():
     max_range = max_n
 
     while True:
-        print("\033[6;1H\033[0K" + "-" * 40)
+        print(ui.draw_line("s", "l"))
         print(f"\033[7;1H\033[0K{INFO["controls"]}")
 
         # 自作の文字入力バッファ
@@ -88,8 +88,7 @@ def main():
                 case "BACKSPACE":
                     if cursor_idx > 0:
                         current_input = (
-                            current_input[: cursor_idx - 1]
-                            + current_input[cursor_idx:]
+                            current_input[: cursor_idx - 1] + current_input[cursor_idx:]
                         )
                         cursor_idx -= 1
 

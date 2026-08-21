@@ -7,7 +7,7 @@ import time
 # 元のパス（libフォルダなどを見つける用）
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from lib import controls, score, screen
+from lib import controls, score, screen, ui
 
 
 def load_game_info(game_key: str) -> dict:
@@ -39,9 +39,7 @@ def menu():
     if os.path.exists(games_dir):
         # アルファベット順でソートして読み込み
         for filename in sorted(os.listdir(games_dir)):
-            if filename.endswith(".py") and not filename.startswith(
-                ("_", "__")
-            ):
+            if filename.endswith(".py") and not filename.startswith(("_", "__")):
                 g_key = filename[:-3]  # ".py" を除去
                 info = load_game_info(g_key)
                 max_lvl = info.get("max_level", 1)
@@ -49,7 +47,9 @@ def menu():
 
     # 万が一ゲームが1つも見つからなかった場合のフォールバック（画面クラッシュ防止）
     if not game_list:
-        game_list = {"guess_number": {"current_level": 1, "max_level": 255}}
+        raise AttributeError(
+            "Game_list wo shutoku dekimasendeshita.\nsaikidou suru ka github issue kara otoiawasekudasai."
+        )
 
     while True:
         while True:
@@ -60,10 +60,8 @@ def menu():
 
             screen.clear(1)
 
-            print("\033[1m==============================\033[0m")
-            print("\033[1m   Welcome to Chotto-Games!   \033[0m")
-            print("\033[1m==============================\033[0m\n")
-            print("====MENU============================")
+            print(ui.draw_box("d", "Welcome to Chotto-Games!"))
+            print(ui.draw_line("d", "l", "MENU"))
             for i, show_game in enumerate(game_list):
                 if cursor_pos == i:
                     print(
@@ -72,7 +70,7 @@ def menu():
                 else:
                     print(f"\033[34m{show_game}\033[0m")
 
-            print("-----------------------------------")
+            print(ui.draw_line("s", "l"))
             print(f"Level: {level}")
 
             # キー入力を受け付ける
@@ -104,15 +102,14 @@ def menu():
                     select_game["current_level"] = max(1, level - 1)
                 case "i" | "I":
                     # インフォメーション機能
-                    print("\033[92m====INFOMATION==============")
-                    print("----GAME DETAIL---------")
+                    print("\033[92m", end="")
+                    print(ui.draw_line("d", "m", "INFOMATION"))
+                    print(ui.draw_line("s", "s", "GAME_DETAIL"))
                     try:
                         info = load_game_info(game_key)
                         if info:
                             print(f"RULE     : {info.get('rule', 'None')}")
-                            print(
-                                f"CONTROLS : {info.get('controls', 'None')}"
-                            )
+                            print(f"CONTROLS : {info.get('controls', 'None')}")
                         else:
                             print("RULE     : None")
                             print("CONTROLS : None")
@@ -120,7 +117,8 @@ def menu():
                         print(f"READ ERROR: {ex}")
 
                     # ランキングを表示する
-                    print("\n----RANKING-------------")
+                    print()
+                    print(ui.draw_line("s", "s", "RANKING"))
                     ranking = score.load(game_key, level)
                     if ranking != []:
                         for i, record in enumerate(ranking):
@@ -138,7 +136,7 @@ def menu():
 
         screen.clear(1)
 
-        print(f"===={game_key}============================")
+        print(ui.draw_line("d", "l", game_key))
 
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         game_path = os.path.join(BASE_DIR, "games", f"{game_key}.py")
