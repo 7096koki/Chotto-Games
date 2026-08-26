@@ -4,6 +4,13 @@ import os
 SAVE_FILE_PATH = "score.json"
 
 
+def init():
+    """score.json が存在しない場合、空の JSON ファイル ({}) を作成して初期化する"""
+    if not os.path.exists(SAVE_FILE_PATH):
+        with open(SAVE_FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump({}, f, indent=4)
+
+
 # 【修正】第一引数に game_name を手動で渡すように変更！
 def save(game_name, level, new_score, *option_data):
     if os.path.exists(SAVE_FILE_PATH):

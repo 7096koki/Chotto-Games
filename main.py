@@ -157,5 +157,6 @@ def menu():
 
 
 # 実行するやつコーナー
+score.init()
 screen.clear(1)
 menu()
