@@ -1,5 +1,8 @@
-LINE = {"s": {"ul": "┌", "ur": "┐", "ll": "└", "lr": "┘", "v": "│", "b": "─"},
-        "d": {"ul": "╔", "ur": "╗", "ll": "╚", "lr": "╝", "v": "║", "b": "═"}}
+LINE = {
+    "s": {"ul": "┌", "ur": "┐", "ll": "└", "lr": "┘", "v": "│", "b": "─"},
+    "d": {"ul": "╔", "ur": "╗", "ll": "╚", "lr": "╝", "v": "║", "b": "═"},
+}
+
 
 def draw_line(style, size, text=""):
     char = LINE[style]
@@ -14,4 +17,31 @@ def draw_line(style, size, text=""):
 
     size_int -= len(text)
 
-    return char["b"] * 4 + text + char["b"] * size_int
+    return_text = char["b"] * 4 + text + char["b"] * size_int
+
+    return return_text
+
+
+def draw_box(style, text, width=None):
+    char = LINE[style]
+
+    width = 8 + len(text)
+
+    b = char["b"] * width
+    return_text = (
+        char["ul"]
+        + b
+        + char["ur"]
+        + "\n"
+        + char["v"]
+        + "    "
+        + str(text)
+        + "    "
+        + char["v"]
+        + "\n"
+        + char["ll"]
+        + b
+        + char["lr"]
+    )
+
+    return return_text
